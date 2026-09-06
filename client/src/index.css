@@ -22,3 +22,14 @@ body {
   border: 2px solid transparent;
   background-clip: content-box;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgb(51 65 85);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

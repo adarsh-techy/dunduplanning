@@ -138,7 +138,7 @@ export default function Sidebar({ open, onClose }) {
     <>
       {/* Desktop: always-visible sidebar */}
       <nav className="hidden w-60 shrink-0 flex-col border-r border-navy-700 bg-navy-950 p-3 lg:flex">
-        <div className="flex-1 overflow-y-auto">{links}</div>
+        <div className="no-scrollbar flex-1 overflow-y-auto">{links}</div>
         {userFooter}
       </nav>
 
@@ -157,7 +157,7 @@ export default function Sidebar({ open, onClose }) {
                 <FiX />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto">{links}</div>
+            <div className="no-scrollbar flex-1 overflow-y-auto">{links}</div>
             {userFooter}
           </nav>
         </div>
