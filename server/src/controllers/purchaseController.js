@@ -5,7 +5,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { UPLOAD_DIR } from '../middleware/upload.js';
 
 export const getPurchases = asyncHandler(async (req, res) => {
-  const purchases = await Purchase.find().sort({ createdAt: -1 });
+  const purchases = await Purchase.find().sort({ createdAt: -1 }).lean();
   res.json({ purchases });
 });
 

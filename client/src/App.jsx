@@ -10,9 +10,9 @@ import Spinner from './components/Spinner';
 // refresh" bug). By the time this component re-renders after the query
 // settles, `state.auth.user` is already correct -- no gap to hit.
 export default function App() {
-  const { isFetching } = useGetMeQuery();
+  const { isLoading } = useGetMeQuery();
 
-  if (isFetching) {
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Spinner />

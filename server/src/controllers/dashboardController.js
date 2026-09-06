@@ -20,13 +20,22 @@ const CHECKLIST_MODELS = {
 };
 
 const summarizeChecklist = async (Model) => {
-  const items = await Model.find();
+  const items = await Model.find().select('status estimatedCost actualCost').lean();
   const total = items.length;
-  const complete = items.filter((i) => i.status === 'complete').length;
-  const inProgress = items.filter((i) => i.status === 'in_progress').length;
-  const pending = items.filter((i) => i.status === 'pending').length;
-  const estimatedCost = items.reduce((sum, i) => sum + (i.estimatedCost || 0), 0);
-  const actualCost = items.reduce((sum, i) => sum + (i.actualCost || 0), 0);
+  let complete = 0;
+  let inProgress = 0;
+  let pending = 0;
+  let estimatedCost = 0;
+  let actualCost = 0;
+
+  for (let i = 0; i < total; i++) {
+    const it = items[i];
+    if (it.status === 'complete') complete++;
+    else if (it.status === 'in_progress') inProgress++;
+    else if (it.status === 'pending') pending++;
+    estimatedCost += it.estimatedCost || 0;
+    actualCost += it.actualCost || 0;
+  }
 
   return {
     total,
@@ -39,14 +48,19 @@ const summarizeChecklist = async (Model) => {
   };
 };
 
-// Status breakdown only -- shared by Packing, which tracks pending/in
-// progress/complete like the checklist modules but has its own cost field
-// (a plain `cost`, no estimated/actual split).
 const summarizeByStatus = (items) => {
   const total = items.length;
-  const complete = items.filter((i) => i.status === 'complete').length;
-  const inProgress = items.filter((i) => i.status === 'in_progress').length;
-  const pending = items.filter((i) => i.status === 'pending').length;
+  let complete = 0;
+  let inProgress = 0;
+  let pending = 0;
+
+  for (let i = 0; i < total; i++) {
+    const it = items[i];
+    if (it.status === 'complete') complete++;
+    else if (it.status === 'in_progress') inProgress++;
+    else if (it.status === 'pending') pending++;
+  }
+
   return {
     total,
     complete,
@@ -58,51 +72,62 @@ const summarizeByStatus = (items) => {
 
 export const getSummary = asyncHandler(async (req, res) => {
   const canSee = (moduleName) =>
-    req.user.role === 'superadmin' || req.user.permissions?.[moduleName];
+    req.user.role === 'superadmin' || Boolean(req.user.permissions?.[moduleName]);
 
   const summary = {};
   let grandCostTotal = 0;
 
+  const tasks = [];
+
+  // Execute all checklist module summaries in parallel
   for (const [moduleName, Model] of Object.entries(CHECKLIST_MODELS)) {
     if (canSee(moduleName)) {
-      const moduleSummary = await summarizeChecklist(Model);
-      summary[moduleName] = moduleSummary;
-      grandCostTotal += moduleSummary.actualCost;
+      tasks.push(
+        summarizeChecklist(Model).then((res) => {
+          summary[moduleName] = res;
+          grandCostTotal += res.actualCost;
+        })
+      );
     }
   }
 
   if (canSee('packing')) {
-    const packingItems = await Packing.find();
-    const totalCost = packingItems.reduce((sum, i) => sum + (i.cost || 0), 0);
-    summary.packing = { ...summarizeByStatus(packingItems), totalCost };
-    grandCostTotal += totalCost;
+    tasks.push(
+      Packing.find().select('status cost').lean().then((packingItems) => {
+        const totalCost = packingItems.reduce((sum, i) => sum + (i.cost || 0), 0);
+        summary.packing = { ...summarizeByStatus(packingItems), totalCost };
+        grandCostTotal += totalCost;
+      })
+    );
   }
 
   if (canSee('deployment')) {
-    const deploymentItems = await Deployment.find();
-    // Only a completed (ticked) service is actually being paid for -- a
-    // pending one hasn't cost anything yet, so it shouldn't inflate either
-    // Deployment's own total or the Grand Total Cost above.
-    const totalCost = deploymentItems
-      .filter((i) => i.status === 'complete')
-      .reduce((sum, i) => sum + (i.cost || 0), 0);
-    summary.deployment = { ...summarizeByStatus(deploymentItems), totalCost };
-    grandCostTotal += totalCost;
+    tasks.push(
+      Deployment.find().select('status cost').lean().then((deploymentItems) => {
+        const totalCost = deploymentItems
+          .filter((i) => i.status === 'complete')
+          .reduce((sum, i) => sum + (i.cost || 0), 0);
+        summary.deployment = { ...summarizeByStatus(deploymentItems), totalCost };
+        grandCostTotal += totalCost;
+      })
+    );
   }
 
   if (canSee('purchase')) {
-    const purchases = await Purchase.find();
-    const totalCost = purchases.reduce((sum, p) => sum + (p.totalCost || 0), 0);
-    const totalItems = purchases.reduce((sum, p) => sum + (p.items?.length || 0), 0);
-    summary.purchase = {
-      total: purchases.length,
-      totalItems,
-      totalCost,
-    };
-    // Deliberately NOT added to grandCostTotal -- the Planning Dashboard's
-    // Grand Total Cost tracks setup/ops spend only. Purchase spend has its
-    // own totals on Purchase Dashboard and Finance.
+    tasks.push(
+      Purchase.find().select('totalCost items').lean().then((purchases) => {
+        const totalCost = purchases.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+        const totalItems = purchases.reduce((sum, p) => sum + (p.items?.length || 0), 0);
+        summary.purchase = {
+          total: purchases.length,
+          totalItems,
+          totalCost,
+        };
+      })
+    );
   }
+
+  await Promise.all(tasks);
 
   summary.grandTotalCost = grandCostTotal;
 

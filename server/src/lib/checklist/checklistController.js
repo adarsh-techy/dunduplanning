@@ -36,7 +36,8 @@ export const createChecklistController = (Model) => ({
     const items = await Model.find()
       .sort({ order: 1, createdAt: 1 })
       .populate('createdBy', USER_FIELDS)
-      .populate('updatedBy', USER_FIELDS);
+      .populate('updatedBy', USER_FIELDS)
+      .lean();
     res.json({ items });
   }),
 
