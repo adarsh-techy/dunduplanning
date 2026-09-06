@@ -86,7 +86,7 @@ export default function FinancePage() {
         </button>
       </div>
 
-      <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow dark:border-slate-700 dark:bg-slate-800">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
           <div className="sm:w-auto">
             <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Month</label>
@@ -151,7 +151,7 @@ export default function FinancePage() {
         {filtered.map((p, index) => (
           <div
             key={p._id}
-            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+            className="rounded-lg border border-slate-200 bg-white p-3 shadow dark:border-slate-700 dark:bg-slate-800"
           >
             <div className="flex items-start justify-between gap-3">
               <p className="font-medium text-slate-800 dark:text-slate-100">

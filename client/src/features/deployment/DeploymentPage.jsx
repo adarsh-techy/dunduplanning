@@ -109,7 +109,7 @@ export default function DeploymentPage() {
           return (
             <div
               key={item._id}
-              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+              className="rounded-lg border border-slate-200 bg-white p-3 shadow dark:border-slate-700 dark:bg-slate-800"
             >
               <div className="flex items-start justify-between gap-3">
                 <label className="flex items-start gap-2.5">

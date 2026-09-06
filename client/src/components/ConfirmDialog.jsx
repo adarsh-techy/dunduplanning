@@ -9,7 +9,7 @@ import { FiAlertTriangle, FiCheckCircle, FiRotateCcw } from 'react-icons/fi';
 const TONES = {
   danger: { icon: FiAlertTriangle, badge: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400', button: 'bg-rose-600 hover:bg-rose-700', label: 'Delete' },
   success: { icon: FiCheckCircle, badge: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400', button: 'bg-emerald-600 hover:bg-emerald-700', label: 'Confirm' },
-  warning: { icon: FiRotateCcw, badge: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400', button: 'bg-amber-600 hover:bg-amber-700', label: 'Confirm' },
+  warning: { icon: FiRotateCcw, badge: 'bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400', button: 'bg-orange-600 hover:bg-orange-700', label: 'Confirm' },
 };
 
 export default function ConfirmDialog({

@@ -8,7 +8,7 @@ const formatCurrency = (n) =>
   );
 
 const COLORS = {
-  amber: 'bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-800',
+  orange: 'bg-orange-50 text-orange-700 ring-orange-100 dark:bg-orange-900/30 dark:text-orange-300 dark:ring-orange-800',
   sky: 'bg-sky-50 text-sky-700 ring-sky-100 dark:bg-sky-900/30 dark:text-sky-300 dark:ring-sky-800',
   emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-800',
   brand: 'bg-brand-50 text-brand-700 ring-brand-100 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-800',
@@ -50,7 +50,7 @@ function ChecklistSection({ label, icon, data }) {
         {data.total} items complete ({data.percentComplete}%)
       </p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card icon="⏳" label="Pending" value={data.pending} color="amber" />
+        <Card icon="⏳" label="Pending" value={data.pending} color="orange" />
         <Card icon="🔄" label="In Progress" value={data.inProgress} color="sky" />
         <Card icon="✅" label="Complete" value={data.complete} color="emerald" />
         <Card
@@ -82,7 +82,7 @@ function StatusSection({ label, icon, data, costLabel = 'Cost' }) {
         {data.total} items complete ({data.percentComplete}%)
       </p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card icon="⏳" label="Pending" value={data.pending} color="amber" />
+        <Card icon="⏳" label="Pending" value={data.pending} color="orange" />
         <Card icon="🔄" label="In Progress" value={data.inProgress} color="sky" />
         <Card icon="✅" label="Complete" value={data.complete} color="emerald" />
         <Card icon="💰" label={costLabel} value={formatCurrency(data.totalCost)} color="fuchsia" />
