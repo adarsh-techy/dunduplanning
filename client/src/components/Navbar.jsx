@@ -16,7 +16,7 @@ export default function Navbar({ onMenuClick }) {
           <FiMenu />
         </button>
         <div className="flex items-center text-white">
-          <span className="text-lg font-extrabold tracking-tight">Dundu Planning</span>
+          <span className="text-base font-extrabold tracking-tight sm:text-lg">Dundu Planning</span>
         </div>
       </div>
       <ThemeToggle />
