@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useLoginMutation } from './authApiSlice';
 import Spinner from '../../components/Spinner';
 import AuthShell from '../../components/AuthShell';
@@ -64,13 +64,6 @@ export default function LoginPage() {
           Sign in
         </button>
       </form>
-
-      <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
-        First time here?{' '}
-        <Link to="/signup" className="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
-          Set up the Super Admin account
-        </Link>
-      </p>
     </AuthShell>
   );
 }
