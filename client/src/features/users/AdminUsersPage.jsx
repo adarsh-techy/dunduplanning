@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiKey } from 'react-icons/fi';
 import {
   useGetUsersQuery,
   useCreateUserMutation,
@@ -9,6 +9,7 @@ import {
 } from './usersApiSlice';
 import { selectCurrentUser } from '../auth/authSlice';
 import AddAdminModal from './AddAdminModal';
+import ChangePasswordModal from './ChangePasswordModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Spinner from '../../components/Spinner';
 import { MODULES } from '../../config/modules';
@@ -32,10 +33,11 @@ export default function AdminUsersPage() {
   const currentUser = useSelector(selectCurrentUser);
   const { data: users, isLoading } = useGetUsersQuery();
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
-  const [updateUser] = useUpdateUserMutation();
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [deleteUser] = useDeleteUserMutation();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [passwordTarget, setPasswordTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [actionError, setActionError] = useState('');
 
@@ -117,16 +119,26 @@ export default function AdminUsersPage() {
                   </p>
                   <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
                 </div>
-                {!isSelf && (
+                <div className="flex items-center gap-1">
                   <button
-                    onClick={() => setDeleteTarget(user)}
-                    title="Delete"
-                    aria-label="Delete"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base text-rose-600 transition hover:bg-slate-100 dark:text-rose-400 dark:hover:bg-slate-700"
+                    onClick={() => setPasswordTarget(user)}
+                    title="Change Password"
+                    aria-label="Change Password"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base text-amber-600 transition hover:bg-slate-100 dark:text-amber-400 dark:hover:bg-slate-700"
                   >
-                    <FiTrash2 />
+                    <FiKey />
                   </button>
-                )}
+                  {!isSelf && (
+                    <button
+                      onClick={() => setDeleteTarget(user)}
+                      title="Delete"
+                      aria-label="Delete"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base text-rose-600 transition hover:bg-slate-100 dark:text-rose-400 dark:hover:bg-slate-700"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3 dark:border-slate-700">
@@ -244,7 +256,15 @@ export default function AdminUsersPage() {
                     </button>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => setPasswordTarget(user)}
+                        title="Change Password"
+                        aria-label="Change Password"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-base text-amber-600 transition hover:bg-slate-100 dark:text-amber-400 dark:hover:bg-slate-700"
+                      >
+                        <FiKey />
+                      </button>
                       {!isSelf && (
                         <button
                           onClick={() => setDeleteTarget(user)}
@@ -272,6 +292,17 @@ export default function AdminUsersPage() {
           setModalOpen(false);
         }}
         isSaving={isCreating}
+      />
+
+      <ChangePasswordModal
+        open={Boolean(passwordTarget)}
+        user={passwordTarget}
+        onClose={() => setPasswordTarget(null)}
+        onSave={async ({ id, password }) => {
+          await updateUser({ id, password }).unwrap();
+          setPasswordTarget(null);
+        }}
+        isSaving={isUpdating}
       />
 
       <ConfirmDialog
