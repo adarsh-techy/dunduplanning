@@ -82,7 +82,11 @@ A typical low-cost setup deploys the two apps separately — e.g. **Render or Ra
 1. **Atlas Network Access** — your host's outbound IP needs to be allowed in Atlas (Network Access → Add IP Address). Most hosts don't have a static IP, so `0.0.0.0/0` ("allow from anywhere") is the practical choice — Atlas still enforces the username/password on top of it.
 2. **Backend env vars** — set every key from `server/.env.example` in your host's dashboard, with `NODE_ENV=production` and `CLIENT_URL` set to your deployed frontend's real URL.
 3. **Frontend env var** — set `VITE_API_URL` (in your host's dashboard) to your deployed backend's full URL including `/api`, then trigger a rebuild — Vite bakes this in at build time, not at runtime.
-4. **Build & start commands** — backend: build command none, start command `npm start` (runs `node src/server.js`, no nodemon); frontend: build command `npm run build`, output directory `dist`.
+4. **Build & start commands** — point both services' **Root Directory at the repo root** (not `client/` or `server/`); the root `package.json`'s `build`/`start` scripts install that side's own dependencies first, so they work from a bare clone regardless of host:
+   - **Backend** (Render Web Service, etc.): Build Command `npm install`, Start Command `npm start` (runs `npm install --prefix server && node server/src/server.js`, no nodemon).
+   - **Frontend** (Render Static Site, Vercel, Netlify): Build Command `npm run build` (installs `client/`'s dependencies, then runs `vite build`), Publish/Output Directory `client/dist`.
+
+   If a build ever fails with something like `sh: vite: not found`, it means the host ran a bare `npm install` at the root (which only installs the root's own tiny `devDependencies`) without also installing `client/`'s — `npm run build` from the root now does that itself, so just make sure the Build Command is `npm run build`, not `npm install && npm run build` with a separate install step in between.
 
 Because the frontend and backend end up on two different domains once hosted, the app automatically switches its auth cookie to `sameSite: 'none'; secure: true` whenever `NODE_ENV=production` (see `server/src/utils/generateToken.js`) — that's what makes cross-domain login work; you don't need to change anything for it.
 
