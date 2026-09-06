@@ -9,7 +9,10 @@
 // HOSTED: set VITE_API_URL to the deployed backend's full URL, e.g.
 //         https://dundu-planning-api.onrender.com/api -- there's no dev
 //         proxy in a production build, so this must be absolute.
-export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
+export const API_BASE_URL = rawApiUrl
+  ? (rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`)
+  : '/api';
 
 // Attachments are served from the backend's /uploads path, not through
 // /api. When the frontend and API share an origin (dev proxy, or a hosted
