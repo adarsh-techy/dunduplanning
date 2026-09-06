@@ -87,15 +87,21 @@ export default function Sidebar({ open, onClose }) {
               </NavLink>
             </li>
           ))}
-          {canSeePurchase && (
+        </ul>
+      </div>
+
+      {canSeePurchase && (
+        <div>
+          <p className={sectionLabelClass}>Finance</p>
+          <ul className="space-y-1">
             <li>
               <NavLink to="/finance" className={linkClass} onClick={onClose}>
                 <span>💰</span> Finance
               </NavLink>
             </li>
-          )}
-        </ul>
-      </div>
+          </ul>
+        </div>
+      )}
 
       {isSuperAdmin && (
         <div>
