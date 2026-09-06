@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-import { asyncHandler } from '../utils/asyncHandler.js';
-import { UPLOAD_DIR } from '../middleware/upload.js';
+import { asyncHandler } from '../../utils/asyncHandler.js';
+import { UPLOAD_DIR } from '../../middleware/upload.js';
 
 const USER_FIELDS = 'name';
 

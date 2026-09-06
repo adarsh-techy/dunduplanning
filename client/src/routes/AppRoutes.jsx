@@ -6,6 +6,8 @@ import PlanningPage from '../features/steps/PlanningPage';
 import StepDetailPage from '../features/steps/StepDetailPage';
 import PurchasePage from '../features/purchases/PurchasePage';
 import PurchaseDetailPage from '../features/purchases/PurchaseDetailPage';
+import PurchaseDashboardPage from '../features/purchases/PurchaseDashboardPage';
+import FinancePage from '../features/finance/FinancePage';
 import MarketingPage from '../features/marketing/MarketingPage';
 import MarketingDetailPage from '../features/marketing/MarketingDetailPage';
 import FeaturesPage from '../features/features/FeaturesPage';
@@ -14,6 +16,8 @@ import DeliveryPage from '../features/delivery/DeliveryPage';
 import DeliveryDetailPage from '../features/delivery/DeliveryDetailPage';
 import AppProgressPage from '../features/appProgress/AppProgressPage';
 import AppFeatureDetailPage from '../features/appProgress/AppFeatureDetailPage';
+import DeploymentPage from '../features/deployment/DeploymentPage';
+import DeploymentDetailPage from '../features/deployment/DeploymentDetailPage';
 import PackingPage from '../features/packing/PackingPage';
 import PackingDetailPage from '../features/packing/PackingDetailPage';
 import AdminUsersPage from '../features/users/AdminUsersPage';
@@ -64,6 +68,22 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute permission="purchase">
               <PurchaseDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="purchase-dashboard"
+          element={
+            <ProtectedRoute permission="purchase">
+              <PurchaseDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="finance"
+          element={
+            <ProtectedRoute permission="purchase">
+              <FinancePage />
             </ProtectedRoute>
           }
         />
@@ -128,6 +148,22 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute permission="app">
               <AppFeatureDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="deployment"
+          element={
+            <ProtectedRoute permission="deployment">
+              <DeploymentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="deployment/:id"
+          element={
+            <ProtectedRoute permission="deployment">
+              <DeploymentDetailPage />
             </ProtectedRoute>
           }
         />

@@ -26,9 +26,15 @@ const toDateTimeInput = (d) => {
   )}:${pad(date.getMinutes())}`;
 };
 
+const inputClass =
+  'mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-400';
+const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-300';
+const completionInputClass =
+  'mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:border-emerald-800 dark:bg-slate-700 dark:text-slate-100';
+
 // Shared add/edit form for every checklist-style module (Planning, Marketing,
-// Features, Delivery). `itemLabel` customizes the heading/button text and
-// `titleLabel` customizes what the "Title" field is called for that module.
+// Features, Delivery, Deployment). `itemLabel` customizes the heading/button
+// text and `titleLabel` customizes what the "Title" field is called.
 export default function ChecklistFormModal({
   open,
   item,
@@ -88,56 +94,49 @@ export default function ChecklistFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-slate-800 dark:ring-white/10">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-slate-800 dark:ring-white/10">
         <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
           {item ? `Edit ${itemLabel}` : `Add ${itemLabel}`}
         </h3>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-              {titleLabel}
-            </label>
-            <input
-              required
-              value={form.title}
-              onChange={handleChange('title')}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-400"
-            />
-          </div>
-          {showCategory && (
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <div className={showCategory ? 'grid grid-cols-1 gap-3 sm:grid-cols-2' : ''}>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Section</label>
-              <input
-                list="checklist-category-suggestions"
-                value={form.category}
-                onChange={handleChange('category')}
-                placeholder="e.g. Deployment"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-400"
-              />
-              <datalist id="checklist-category-suggestions">
-                {categoryOptions.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
+              <label className={labelClass}>{titleLabel}</label>
+              <input required value={form.title} onChange={handleChange('title')} className={inputClass} />
             </div>
-          )}
+            {showCategory && (
+              <div>
+                <label className={labelClass}>Section</label>
+                <input
+                  list="checklist-category-suggestions"
+                  value={form.category}
+                  onChange={handleChange('category')}
+                  placeholder="e.g. Deployment"
+                  className={inputClass}
+                />
+                <datalist id="checklist-category-suggestions">
+                  {categoryOptions.map((c) => (
+                    <option key={c} value={c} />
+                  ))}
+                </datalist>
+              </div>
+            )}
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>
+            <label className={labelClass}>Description</label>
             <textarea
               value={form.description}
               onChange={handleChange('description')}
               rows={2}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className={inputClass}
             />
           </div>
-          <div className={showDate ? 'grid grid-cols-2 gap-3' : ''}>
+
+          <div className={showDate && !isComplete ? 'grid grid-cols-1 gap-3 sm:grid-cols-2' : ''}>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Status</label>
-              <select
-                value={form.status}
-                onChange={handleChange('status')}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-400"
-              >
+              <label className={labelClass}>Status</label>
+              <select value={form.status} onChange={handleChange('status')} className={inputClass}>
                 <option value="pending">Pending</option>
                 <option value="in_progress">In Progress</option>
                 <option value="complete">Complete</option>
@@ -145,21 +144,21 @@ export default function ChecklistFormModal({
             </div>
             {showDate && !isComplete && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{dateLabel}</label>
+                <label className={labelClass}>{dateLabel}</label>
                 <input
                   type="date"
                   value={form.dueDate}
                   onChange={handleChange('dueDate')}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-400"
+                  className={inputClass}
                 />
               </div>
             )}
           </div>
 
           {isComplete && (
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-900/20">
-              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">Completion</p>
-              <div className={showDoneBy ? 'mt-2 grid grid-cols-2 gap-3' : 'mt-2'}>
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-900/40 dark:bg-emerald-900/20">
+              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Completion</p>
+              <div className={showDoneBy ? 'mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2' : 'mt-3'}>
                 {showDoneBy && (
                   <div>
                     <label className="block text-xs font-medium text-emerald-700 dark:text-emerald-400">
@@ -171,7 +170,7 @@ export default function ChecklistFormModal({
                       placeholder="Your name (default: you)"
                       value={form.completedBy}
                       onChange={handleChange('completedBy')}
-                      className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:border-emerald-800 dark:bg-slate-700 dark:text-slate-100"
+                      className={completionInputClass}
                     />
                     <datalist id="checklist-done-by-suggestions">
                       {users?.map((u) => (
@@ -188,55 +187,51 @@ export default function ChecklistFormModal({
                     type="datetime-local"
                     value={form.completedDate}
                     onChange={handleChange('completedDate')}
-                    className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:border-emerald-800 dark:bg-slate-700 dark:text-slate-100"
+                    className={completionInputClass}
                   />
                 </div>
               </div>
-              <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-400">
+              <p className="mt-2.5 text-xs text-emerald-700 dark:text-emerald-400">
                 Leave {showDoneBy ? 'either field' : 'it'} on its default to use {showDoneBy ? 'you and ' : ''}the current date/time.
               </p>
             </div>
           )}
 
           {showCost && (
-            <div className={showEstimatedCost ? 'grid grid-cols-2 gap-3' : ''}>
+            <div className={showEstimatedCost ? 'grid grid-cols-1 gap-3 sm:grid-cols-2' : ''}>
               {showEstimatedCost && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Estimated Cost</label>
+                  <label className={labelClass}>Estimated Cost</label>
                   <input
                     type="number"
                     min="0"
                     step="0.01"
                     value={form.estimatedCost}
                     onChange={handleChange('estimatedCost')}
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-400"
+                    className={inputClass}
                   />
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{costLabel}</label>
+                <label className={labelClass}>{costLabel}</label>
                 <input
                   type="number"
                   min="0"
                   step="0.01"
                   value={form.actualCost}
                   onChange={handleChange('actualCost')}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-400"
+                  className={inputClass}
                 />
               </div>
             </div>
           )}
+
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Notes</label>
-            <textarea
-              value={form.notes}
-              onChange={handleChange('notes')}
-              rows={2}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-400"
-            />
+            <label className={labelClass}>Notes</label>
+            <textarea value={form.notes} onChange={handleChange('notes')} rows={2} className={inputClass} />
           </div>
 
-          <div className="mt-5 flex justify-end gap-2">
+          <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-700">
             <button
               type="button"
               onClick={onClose}

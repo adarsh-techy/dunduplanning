@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // "brand" = pink, used everywhere in place of a plain blue/indigo.
+        // "brand" = pink, used for actions/accents (buttons, active states, links).
         brand: {
           50: '#fdf2f8',
           100: '#fce7f3',
@@ -17,6 +17,17 @@ export default {
           700: '#be185d',
           800: '#9d174d',
           900: '#831843',
+        },
+        // "navy" = the fixed dark-blue chrome color for the Navbar and
+        // Sidebar -- deliberately NOT theme-dependent, so the app shell
+        // stays the same dark blue whether the content area is in light or
+        // dark mode.
+        navy: {
+          600: '#243b6b',
+          700: '#1b2c52',
+          800: '#131f3d',
+          900: '#0d1730',
+          950: '#080f20',
         },
       },
       fontFamily: {

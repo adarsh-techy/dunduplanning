@@ -1,6 +1,6 @@
 import { useGetSummaryQuery } from './dashboardApiSlice';
 import Spinner from '../../components/Spinner';
-import { MODULES } from '../../modules';
+import { MODULES } from '../../config/modules';
 
 const formatCurrency = (n) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(
@@ -65,6 +65,32 @@ function ChecklistSection({ label, icon, data }) {
   );
 }
 
+function StatusSection({ label, icon, data, costLabel = 'Cost' }) {
+  return (
+    <section>
+      <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {icon} {label}
+      </h2>
+      <div className="mb-4 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+        <div
+          className="h-2.5 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all"
+          style={{ width: `${data.percentComplete}%` }}
+        />
+      </div>
+      <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
+        <span className="font-semibold text-slate-900 dark:text-slate-100">{data.complete}</span> of{' '}
+        {data.total} items complete ({data.percentComplete}%)
+      </p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Card icon="⏳" label="Pending" value={data.pending} color="amber" />
+        <Card icon="🔄" label="In Progress" value={data.inProgress} color="sky" />
+        <Card icon="✅" label="Complete" value={data.complete} color="emerald" />
+        <Card icon="💰" label={costLabel} value={formatCurrency(data.totalCost)} color="fuchsia" />
+      </div>
+    </section>
+  );
+}
+
 export default function DashboardPage() {
   const { data: summary, isLoading, isError } = useGetSummaryQuery();
 
@@ -84,13 +110,15 @@ export default function DashboardPage() {
     );
   }
 
-  const { purchase, grandTotalCost } = summary;
+  const { packing, deployment, grandTotalCost } = summary;
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">Overview</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Here's where the business stands today.</p>
+        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">Planning Dashboard</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Business setup and operations progress. For purchase spend, see Purchase Dashboard and Finance.
+        </p>
       </div>
 
       <div className="rounded-2xl bg-gradient-to-r from-brand-600 to-fuchsia-600 p-5 text-white shadow-card sm:p-6">
@@ -98,26 +126,19 @@ export default function DashboardPage() {
         <p className="mt-1 text-3xl font-extrabold tracking-tight">
           {formatCurrency(grandTotalCost)}
         </p>
-        <p className="mt-1 text-xs text-white/70">Across every module you have access to</p>
+        <p className="mt-1 text-xs text-white/70">
+          Setup &amp; operations spend — Planning, App Progress, Features, Delivery, Marketing, Packing, Deployment
+        </p>
       </div>
 
-      {MODULES.filter((m) => m.key !== 'purchase' && summary[m.key]).map((m) => (
+      {MODULES.filter(
+        (m) => m.key !== 'purchase' && m.key !== 'packing' && m.key !== 'deployment' && summary[m.key]
+      ).map((m) => (
         <ChecklistSection key={m.key} label={m.label} icon={m.icon} data={summary[m.key]} />
       ))}
 
-      {purchase && (
-        <section>
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            🛒 Purchases
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Card icon="🗓️" label="Planned" value={purchase.planned} color="amber" />
-            <Card icon="📦" label="Ordered" value={purchase.ordered} color="sky" />
-            <Card icon="✅" label="Received" value={purchase.received} color="emerald" />
-            <Card icon="💰" label="Total Cost" value={formatCurrency(purchase.totalCost)} color="rose" />
-          </div>
-        </section>
-      )}
+      {packing && <StatusSection label="Packing" icon="📦" data={packing} />}
+      {deployment && <StatusSection label="Deployment" icon="🚀" data={deployment} />}
     </div>
   );
 }

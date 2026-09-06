@@ -1,11 +1,12 @@
 import User from '../models/User.js';
+import { env } from '../config/env.js';
 
 // Creates the one and only super admin account from env vars, if it doesn't
 // already exist. Returns the super admin document either way.
 export const seedSuperAdmin = async () => {
-  const email = (process.env.SUPERADMIN_EMAIL || '').toLowerCase().trim();
-  const password = process.env.SUPERADMIN_PASSWORD;
-  const name = process.env.SUPERADMIN_NAME || 'Super Admin';
+  const email = (env.superAdmin.email || '').toLowerCase().trim();
+  const password = env.superAdmin.password;
+  const name = env.superAdmin.name;
 
   if (!email || !password) {
     throw new Error('SUPERADMIN_EMAIL and SUPERADMIN_PASSWORD must be set in .env to seed');

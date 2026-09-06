@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiEdit2, FiTrash2, FiEye, FiDownload } from 'react-icons/fi';
+import { FiArrowLeft, FiEdit2, FiTrash2, FiEye, FiDownload, FiFileText } from 'react-icons/fi';
+import { resolveFileUrl } from '../../config/env';
 import {
   useGetPurchasesQuery,
   useUpdatePurchaseMutation,
@@ -9,7 +10,6 @@ import {
   useDeletePurchaseAttachmentMutation,
 } from './purchasesApiSlice';
 import PurchaseFormModal from './PurchaseFormModal';
-import StatusBadge from '../../components/StatusBadge';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import FileUploadInput from '../../components/FileUploadInput';
 import Spinner from '../../components/Spinner';
@@ -19,6 +19,15 @@ const formatCurrency = (n) =>
     n || 0
   );
 const formatDate = (d) => (d ? new Date(d).toLocaleDateString('en-IN') : '—');
+
+const PAYMENT_LABELS = {
+  cash: 'Cash',
+  card: 'Card',
+  upi: 'UPI',
+  bank_transfer: 'Bank Transfer',
+  cheque: 'Cheque',
+  other: 'Other',
+};
 
 const FILE_ICONS = { pdf: '📕', jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', webp: '🖼️' };
 const fileIcon = (name = '') => FILE_ICONS[name.split('.').pop()?.toLowerCase()] || '📄';
@@ -59,6 +68,7 @@ export default function PurchaseDetailPage() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [attachmentToDelete, setAttachmentToDelete] = useState(null);
 
   const purchase = purchases?.find((p) => p._id === id);
 
@@ -105,12 +115,17 @@ export default function PurchaseDetailPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-white/70">Purchase</p>
-            <h1 className="mt-0.5 truncate text-2xl font-extrabold tracking-tight">{purchase.itemName}</h1>
-            <div className="mt-3">
-              <StatusBadge status={purchase.status} />
-            </div>
+            <h1 className="mt-0.5 truncate text-2xl font-extrabold tracking-tight">{purchase.vendorName}</h1>
           </div>
-          <div className="flex shrink-0 gap-2">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() =>
+                import('../../utils/purchaseInvoice').then((m) => m.downloadPurchaseInvoice(purchase))
+              }
+              className="flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-semibold text-white ring-1 ring-white/25 transition hover:bg-white/25"
+            >
+              <FiFileText /> <span className="hidden sm:inline">Download </span>Invoice
+            </button>
             <button
               onClick={() => setEditOpen(true)}
               className="flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-semibold text-white ring-1 ring-white/25 transition hover:bg-white/25"
@@ -129,18 +144,49 @@ export default function PurchaseDetailPage() {
 
       <div className="mt-5 space-y-5">
         <InfoCard title="Overview">
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
-            <Field label="Category" value={purchase.category} />
-            <Field label="Vendor" value={purchase.vendor} />
-            <Field label="Linked Step" value={purchase.linkedStep?.title} />
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+            <Field label="Vendor" value={purchase.vendorName} />
+            <Field label="Location" value={purchase.location} />
             <Field label="Date" value={formatDate(purchase.purchaseDate)} />
-            <Field
-              label="Quantity × Unit Cost"
-              value={`${purchase.quantity} × ${formatCurrency(purchase.unitCost)}`}
-            />
-            <Field label="Total" value={formatCurrency(purchase.totalCost)} />
+            <Field label="Who" value={purchase.purchasedBy} />
+            <Field label="Payment Method" value={PAYMENT_LABELS[purchase.paymentMethod]} />
             <Field label="Notes" value={purchase.notes} full />
           </dl>
+        </InfoCard>
+
+        <InfoCard title="Products">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <th className="pb-2 pr-4">Product</th>
+                  <th className="pb-2 pr-4">Qty</th>
+                  <th className="pb-2 pr-4 text-right">Total Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                {purchase.items?.map((item, i) => (
+                  <tr key={item._id || i}>
+                    <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-100">{item.productName}</td>
+                    <td className="py-2 pr-4 text-slate-600 dark:text-slate-400">{item.quantity}</td>
+                    <td className="py-2 pr-4 text-right text-slate-800 dark:text-slate-100">
+                      {formatCurrency(item.totalAmount)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-slate-200 dark:border-slate-600">
+                  <td className="pt-2 pr-4 font-bold text-slate-800 dark:text-slate-100" colSpan={2}>
+                    Grand Total
+                  </td>
+                  <td className="pt-2 pr-4 text-right font-bold text-slate-800 dark:text-slate-100">
+                    {formatCurrency(purchase.totalCost)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </InfoCard>
 
         <InfoCard>
@@ -163,7 +209,7 @@ export default function PurchaseDetailPage() {
                   </span>
                   <span className="flex shrink-0 items-center gap-1">
                     <a
-                      href={a.filePath}
+                      href={resolveFileUrl(a.filePath)}
                       target="_blank"
                       rel="noreferrer"
                       title="View"
@@ -173,7 +219,7 @@ export default function PurchaseDetailPage() {
                       <FiEye />
                     </a>
                     <a
-                      href={a.filePath}
+                      href={resolveFileUrl(a.filePath)}
                       download={a.fileName}
                       title="Download"
                       aria-label="Download"
@@ -182,7 +228,7 @@ export default function PurchaseDetailPage() {
                       <FiDownload />
                     </a>
                     <button
-                      onClick={() => deleteAttachment({ id, attachmentId: a._id })}
+                      onClick={() => setAttachmentToDelete({ attachmentId: a._id, fileName: a.fileName })}
                       title="Remove"
                       aria-label="Remove"
                       className="flex h-8 w-8 items-center justify-center rounded-lg text-base text-rose-600 transition hover:bg-slate-200 dark:text-rose-400 dark:hover:bg-slate-700"
@@ -203,8 +249,11 @@ export default function PurchaseDetailPage() {
         open={editOpen}
         purchase={purchase}
         onClose={() => setEditOpen(false)}
-        onSubmit={async (form) => {
+        onSubmit={async (form, billFile) => {
           await updatePurchase({ id: purchase._id, ...form });
+          if (billFile) {
+            await handleUpload(billFile);
+          }
           setEditOpen(false);
         }}
         isSaving={isUpdating}
@@ -213,12 +262,24 @@ export default function PurchaseDetailPage() {
       <ConfirmDialog
         open={deleteOpen}
         title="Delete purchase"
-        message={`Delete "${purchase.itemName}"? This cannot be undone.`}
-        confirmValue={purchase.itemName}
+        message={`Delete the purchase from "${purchase.vendorName}"? This cannot be undone.`}
+        confirmValue={purchase.vendorName}
         onCancel={() => setDeleteOpen(false)}
         onConfirm={async () => {
           await deletePurchase(purchase._id);
           navigate('/purchases');
+        }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(attachmentToDelete)}
+        title="Delete attachment"
+        message={`Delete "${attachmentToDelete?.fileName}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onCancel={() => setAttachmentToDelete(null)}
+        onConfirm={async () => {
+          await deleteAttachment({ id, attachmentId: attachmentToDelete.attachmentId });
+          setAttachmentToDelete(null);
         }}
       />
     </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiEdit2, FiTrash2, FiEye, FiDownload, FiCheckCircle } from 'react-icons/fi';
+import { resolveFileUrl } from '../config/env';
 import StatusBadge from './StatusBadge';
 import ChecklistFormModal from './ChecklistFormModal';
 import ConfirmDialog from './ConfirmDialog';
@@ -87,6 +88,7 @@ export default function ChecklistDetailPage({
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [attachmentToDelete, setAttachmentToDelete] = useState(null);
 
   const item = items?.find((i) => i._id === id);
 
@@ -144,7 +146,7 @@ export default function ChecklistDetailPage({
               <StatusBadge status={item.status} />
             </div>
           </div>
-          <div className="flex shrink-0 gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setEditOpen(true)}
               className="flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-semibold text-white ring-1 ring-white/25 transition hover:bg-white/25"
@@ -164,7 +166,7 @@ export default function ChecklistDetailPage({
       <div className="mt-5 space-y-5">
         {/* Overview */}
         <InfoCard title="Overview">
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
             <Field label="Description" value={item.description} full />
             {showDate && <Field label={dateLabel} value={formatDate(item.dueDate)} />}
             {showCost && showEstimatedCost && (
@@ -196,7 +198,7 @@ export default function ChecklistDetailPage({
               Not completed yet. Mark it complete from Edit to record who did it and when.
             </p>
           )}
-          <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-xs dark:border-slate-700">
+          <dl className="mt-4 grid grid-cols-1 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-xs dark:border-slate-700 sm:grid-cols-2">
             <Field label="Created by" value={item.createdBy?.name} />
             <Field label="Created on" value={formatDateTime(item.createdAt)} />
             <Field label="Last updated by" value={item.updatedBy?.name} />
@@ -226,7 +228,7 @@ export default function ChecklistDetailPage({
                     </span>
                     <span className="flex shrink-0 items-center gap-1">
                       <a
-                        href={a.filePath}
+                        href={resolveFileUrl(a.filePath)}
                         target="_blank"
                         rel="noreferrer"
                         title="View"
@@ -236,7 +238,7 @@ export default function ChecklistDetailPage({
                         <FiEye />
                       </a>
                       <a
-                        href={a.filePath}
+                        href={resolveFileUrl(a.filePath)}
                         download={a.fileName}
                         title="Download"
                         aria-label="Download"
@@ -245,7 +247,7 @@ export default function ChecklistDetailPage({
                         <FiDownload />
                       </a>
                       <button
-                        onClick={() => deleteAttachment({ id, attachmentId: a._id })}
+                        onClick={() => setAttachmentToDelete({ attachmentId: a._id, fileName: a.fileName })}
                         title="Remove"
                         aria-label="Remove"
                         className="flex h-8 w-8 items-center justify-center rounded-lg text-base text-rose-600 transition hover:bg-slate-200 dark:text-rose-400 dark:hover:bg-slate-700"
@@ -293,6 +295,18 @@ export default function ChecklistDetailPage({
         onConfirm={async () => {
           await deleteItem(item._id);
           navigate(backTo);
+        }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(attachmentToDelete)}
+        title="Delete attachment"
+        message={`Delete "${attachmentToDelete?.fileName}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onCancel={() => setAttachmentToDelete(null)}
+        onConfirm={async () => {
+          await deleteAttachment({ id, attachmentId: attachmentToDelete.attachmentId });
+          setAttachmentToDelete(null);
         }}
       />
     </div>

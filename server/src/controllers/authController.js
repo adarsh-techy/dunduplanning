@@ -1,6 +1,22 @@
+import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import { generateToken, setAuthCookie, clearAuthCookie } from '../utils/generateToken.js';
+import { env } from '../config/env.js';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  setAuthCookies,
+  clearAuthCookies,
+} from '../utils/generateToken.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+
+// Issues a fresh access + refresh token pair and sets both cookies -- the
+// one thing login, signup and refresh all need to do identically.
+const issueSession = (res, userId) => {
+  setAuthCookies(res, {
+    accessToken: generateAccessToken(userId),
+    refreshToken: generateRefreshToken(userId),
+  });
+};
 
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -21,15 +37,50 @@ export const login = asyncHandler(async (req, res) => {
     return res.status(401).json({ message: 'Invalid email or password' });
   }
 
-  const token = generateToken(user._id);
-  setAuthCookie(res, token);
+  issueSession(res, user._id);
   res.json({ user: user.toSafeObject() });
 });
 
 export const logout = (req, res) => {
-  clearAuthCookie(res);
+  clearAuthCookies(res);
   res.json({ message: 'Logged out' });
 };
+
+// Silently mints a new access token from a still-valid refresh token, so a
+// session survives past the access token's short lifetime without asking
+// the user to log in again. The frontend calls this automatically whenever
+// any API request comes back 401 (see client/src/app/apiSlice.js), so
+// nothing needs to call it directly from the UI.
+export const refresh = asyncHandler(async (req, res) => {
+  const token = req.cookies?.refreshToken;
+  if (!token) {
+    return res.status(401).json({ message: 'Not authenticated' });
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, env.jwtRefreshSecret);
+  } catch {
+    clearAuthCookies(res);
+    return res.status(401).json({ message: 'Session expired, please log in again' });
+  }
+  if (decoded.type !== 'refresh') {
+    clearAuthCookies(res);
+    return res.status(401).json({ message: 'Session expired, please log in again' });
+  }
+
+  const user = await User.findById(decoded.id);
+  if (!user || !user.isActive) {
+    clearAuthCookies(res);
+    return res.status(401).json({ message: 'Account not found or deactivated' });
+  }
+
+  // Rotate both tokens on every refresh, not just the access token -- a
+  // leaked refresh token then only works until the legitimate session
+  // happens to refresh next, instead of for its whole 30-day lifetime.
+  issueSession(res, user._id);
+  res.json({ user: user.toSafeObject() });
+});
 
 export const getMe = (req, res) => {
   res.json({ user: req.user.toSafeObject() });
@@ -65,8 +116,7 @@ export const signup = asyncHandler(async (req, res) => {
     permissions: { planning: true, purchase: true },
   });
 
-  const token = generateToken(user._id);
-  setAuthCookie(res, token);
+  issueSession(res, user._id);
   res.status(201).json({ user: user.toSafeObject() });
 });
 

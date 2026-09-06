@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MODULES } from '../../modules';
+import { MODULES } from '../../config/modules';
 
 const EMPTY_PERMISSIONS = MODULES.reduce((acc, m) => ({ ...acc, [m.key]: false }), {});
 const EMPTY = { name: '', email: '', password: '', role: 'admin', ...EMPTY_PERMISSIONS };
@@ -37,7 +37,7 @@ export default function AddAdminModal({ open, onClose, onSubmit, isSaving }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-slate-800 dark:ring-white/10">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-slate-800 dark:ring-white/10">
         <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Add User</h3>
         <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Create an admin or another super admin.</p>
 

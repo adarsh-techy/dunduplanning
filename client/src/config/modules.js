@@ -4,6 +4,7 @@
 export const MODULES = [
   { key: 'planning', label: 'Planning', icon: '📋', hint: 'business setup steps' },
   { key: 'app', label: 'App Progress', icon: '📱', hint: 'Dundu-Online build tracker' },
+  { key: 'deployment', label: 'Deployment', icon: '🚀', hint: 'hosting & deployment cost' },
   { key: 'features', label: 'Features', icon: '✨', hint: 'product/business features' },
   { key: 'purchase', label: 'Purchase', icon: '🛒', hint: 'expense tracking' },
   { key: 'packing', label: 'Packing', icon: '📦', hint: 'packing & fulfillment ops' },

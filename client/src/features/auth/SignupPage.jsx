@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useSignupMutation, useGetSetupStatusQuery } from './authApiSlice';
-import { setCredentials } from './authSlice';
 import Spinner from '../../components/Spinner';
 import AuthShell from '../../components/AuthShell';
 
@@ -15,7 +13,6 @@ export default function SignupPage() {
 
   const { data: setupStatus, isLoading: checkingStatus } = useGetSetupStatusQuery();
   const [signup, { isLoading: isSigningUp }] = useSignupMutation();
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -26,8 +23,9 @@ export default function SignupPage() {
       return;
     }
     try {
-      const { user } = await signup({ name, email, password }).unwrap();
-      dispatch(setCredentials(user));
+      // authSlice picks this up itself via extraReducers on signup.matchFulfilled,
+      // so state.auth.user is already set by the time this resolves.
+      await signup({ name, email, password }).unwrap();
       navigate('/', { replace: true });
     } catch (err) {
       setError(err?.data?.message || 'Could not complete setup. Please try again.');

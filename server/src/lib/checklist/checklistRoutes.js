@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { protect } from '../middleware/auth.js';
-import { permit } from '../middleware/permit.js';
-import { upload } from '../middleware/upload.js';
+import { protect } from '../../middleware/auth.js';
+import { permit } from '../../middleware/permit.js';
+import { upload } from '../../middleware/upload.js';
 
 // Wires the standard set of routes for a checklist-style module, gated
 // behind the given module permission (e.g. "planning", "marketing").

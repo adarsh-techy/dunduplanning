@@ -11,7 +11,7 @@ import { selectCurrentUser } from '../auth/authSlice';
 import AddAdminModal from './AddAdminModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Spinner from '../../components/Spinner';
-import { MODULES } from '../../modules';
+import { MODULES } from '../../config/modules';
 
 function RoleBadge({ role }) {
   const isSuperAdmin = role === 'superadmin';
@@ -78,7 +78,7 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Admin Users</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -87,7 +87,7 @@ export default function AdminUsersPage() {
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-brand-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-brand-700 hover:to-fuchsia-700"
+          className="flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-brand-600 to-fuchsia-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-brand-700 hover:to-fuchsia-700 sm:w-auto sm:py-2"
         >
           <FiPlus /> Add User
         </button>
@@ -99,7 +99,84 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      {/* Mobile: one card per user instead of a 6-column table */}
+      <div className="space-y-3 sm:hidden">
+        {users?.map((user) => {
+          const isSelf = user.id === currentUser?.id;
+          const isSuperAdmin = user.role === 'superadmin';
+          return (
+            <div
+              key={user.id}
+              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-slate-800 dark:text-slate-100">
+                    {user.name}
+                    {isSelf && <span className="ml-1.5 text-xs font-normal text-slate-400 dark:text-slate-500">(you)</span>}
+                  </p>
+                  <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+                </div>
+                {!isSelf && (
+                  <button
+                    onClick={() => setDeleteTarget(user)}
+                    title="Delete"
+                    aria-label="Delete"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base text-rose-600 transition hover:bg-slate-100 dark:text-rose-400 dark:hover:bg-slate-700"
+                  >
+                    <FiTrash2 />
+                  </button>
+                )}
+              </div>
+
+              <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3 dark:border-slate-700">
+                <RoleBadge role={user.role} />
+                <button
+                  disabled={isSelf}
+                  onClick={() => toggleActive(user)}
+                  title={isSelf ? "You can't deactivate your own account" : undefined}
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    user.isActive
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                      : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                  } ${isSelf ? 'cursor-not-allowed opacity-60' : 'hover:opacity-80'}`}
+                >
+                  {user.isActive ? 'Active' : 'Deactivated'}
+                </button>
+              </div>
+
+              {!isSuperAdmin && (
+                <div className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-700">
+                  <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                    Module Access
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {MODULES.map((m) => {
+                      const granted = Boolean(user.permissions[m.key]);
+                      return (
+                        <button
+                          key={m.key}
+                          onClick={() => togglePermission(user, m.key)}
+                          title={granted ? `Revoke ${m.label} access` : `Grant ${m.label} access`}
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium transition ${
+                            granted
+                              ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300'
+                              : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-500 dark:hover:bg-slate-600'
+                          }`}
+                        >
+                          {m.icon} {m.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:block">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 dark:bg-slate-900/50">
             <tr>

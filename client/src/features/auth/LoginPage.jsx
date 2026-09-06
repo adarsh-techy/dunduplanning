@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLoginMutation } from './authApiSlice';
-import { setCredentials } from './authSlice';
 import Spinner from '../../components/Spinner';
 import AuthShell from '../../components/AuthShell';
 
@@ -11,15 +9,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [login, { isLoading }] = useLoginMutation();
   const [error, setError] = useState('');
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      const { user } = await login({ email, password }).unwrap();
-      dispatch(setCredentials(user));
+      // authSlice picks this up itself via extraReducers on login.matchFulfilled,
+      // so state.auth.user is already set by the time this resolves.
+      await login({ email, password }).unwrap();
       navigate('/', { replace: true });
     } catch (err) {
       setError(err?.data?.message || 'Login failed. Please try again.');

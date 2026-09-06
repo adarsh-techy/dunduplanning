@@ -5,28 +5,40 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { UPLOAD_DIR } from '../middleware/upload.js';
 
 export const getPurchases = asyncHandler(async (req, res) => {
-  const purchases = await Purchase.find().sort({ createdAt: -1 }).populate('linkedStep', 'title');
+  const purchases = await Purchase.find().sort({ createdAt: -1 });
   res.json({ purchases });
 });
 
-export const createPurchase = asyncHandler(async (req, res) => {
-  const { itemName, category, quantity, unitCost, vendor, purchaseDate, status, notes, linkedStep } =
-    req.body;
+// Keeps only rows where a product name was actually typed, and coerces
+// quantity/totalAmount to numbers -- form inputs send strings.
+const sanitizeItems = (items) =>
+  (Array.isArray(items) ? items : [])
+    .filter((i) => i?.productName?.trim())
+    .map((i) => ({
+      productName: i.productName.trim(),
+      quantity: Number(i.quantity) || 0,
+      totalAmount: Number(i.totalAmount) || 0,
+    }));
 
-  if (!itemName) {
-    return res.status(400).json({ message: 'Item name is required' });
+export const createPurchase = asyncHandler(async (req, res) => {
+  const { vendorName, location, purchaseDate, purchasedBy, paymentMethod, items, notes } = req.body;
+
+  if (!vendorName) {
+    return res.status(400).json({ message: 'Vendor name is required' });
+  }
+  const cleanItems = sanitizeItems(items);
+  if (cleanItems.length === 0) {
+    return res.status(400).json({ message: 'At least one product is required' });
   }
 
   const purchase = await Purchase.create({
-    itemName,
-    category,
-    quantity,
-    unitCost,
-    vendor,
+    vendorName,
+    location,
     purchaseDate: purchaseDate || null,
-    status,
+    purchasedBy,
+    paymentMethod,
+    items: cleanItems,
     notes,
-    linkedStep: linkedStep || null,
     createdBy: req.user._id,
     updatedBy: req.user._id,
   });
@@ -40,14 +52,16 @@ export const updatePurchase = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Purchase not found' });
   }
 
-  const directFields = ['itemName', 'category', 'quantity', 'unitCost', 'vendor', 'status', 'notes'];
+  const directFields = ['vendorName', 'location', 'purchasedBy', 'paymentMethod', 'notes'];
   directFields.forEach((field) => {
     if (req.body[field] !== undefined) purchase[field] = req.body[field];
   });
-  const nullableFields = ['purchaseDate', 'linkedStep'];
-  nullableFields.forEach((field) => {
-    if (req.body[field] !== undefined) purchase[field] = req.body[field] || null;
-  });
+  if (req.body.purchaseDate !== undefined) {
+    purchase.purchaseDate = req.body.purchaseDate || null;
+  }
+  if (req.body.items !== undefined) {
+    purchase.items = sanitizeItems(req.body.items);
+  }
   purchase.updatedBy = req.user._id;
 
   await purchase.save();
