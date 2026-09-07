@@ -40,4 +40,7 @@ const packingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+packingSchema.index({ order: 1, createdAt: 1 });
+packingSchema.index({ status: 1 });
+
 export default mongoose.model('Packing', packingSchema);

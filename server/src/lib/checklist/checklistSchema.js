@@ -10,8 +10,8 @@ const attachmentSchema = new mongoose.Schema({
 // shares this exact shape: a titled item with a status, a cost, a due date,
 // notes and attachments. Building each module's Mongoose model from this one
 // factory keeps them consistent and avoids re-typing the same schema four times.
-export const buildChecklistSchema = () =>
-  new mongoose.Schema(
+export const buildChecklistSchema = () => {
+  const schema = new mongoose.Schema(
     {
       title: { type: String, required: true, trim: true },
       // Optional grouping label (e.g. "Dashboard & Analytics", "Deployment")
@@ -39,5 +39,11 @@ export const buildChecklistSchema = () =>
     },
     { timestamps: true }
   );
+
+  schema.index({ order: 1, createdAt: 1 });
+  schema.index({ status: 1 });
+
+  return schema;
+};
 
 export const createChecklistModel = (modelName) => mongoose.model(modelName, buildChecklistSchema());

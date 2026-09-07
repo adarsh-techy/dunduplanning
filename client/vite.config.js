@@ -22,5 +22,17 @@ export default defineConfig(({ mode }) => {
         '/uploads': { target: apiTarget, changeOrigin: true },
       },
     },
+    build: {
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
+            'vendor-icons': ['react-icons'],
+          },
+        },
+      },
+    },
   };
 });

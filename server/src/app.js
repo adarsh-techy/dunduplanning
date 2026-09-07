@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
+import compression from 'compression';
 
 import { env } from './config/env.js';
 import authRoutes from './routes/authRoutes.js';
@@ -36,6 +37,7 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+app.use(compression());
 if (!env.isProduction) {
   app.use(morgan('dev'));
 }

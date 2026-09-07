@@ -43,6 +43,10 @@ const purchaseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+purchaseSchema.index({ createdAt: -1 });
+purchaseSchema.index({ purchaseDate: -1 });
+purchaseSchema.index({ vendorName: 1 });
+
 purchaseSchema.pre('save', function computeTotal(next) {
   this.totalCost =
     Math.round((this.items || []).reduce((sum, item) => sum + (item.totalAmount || 0), 0) * 100) / 100;

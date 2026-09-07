@@ -26,14 +26,24 @@ const assertAnotherSuperAdminRemains = async (excludingId) => {
 };
 
 export const getUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().sort({ createdAt: 1 });
-  res.json({ users: users.map((u) => u.toSafeObject()) });
+  const users = await User.find().select('-password').sort({ createdAt: 1 }).lean();
+  res.json({
+    users: users.map((u) => ({
+      id: u._id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      permissions: u.permissions,
+      isActive: u.isActive,
+      createdAt: u.createdAt,
+    })),
+  });
 });
 
 // Lightweight id/name list for pickers (e.g. "who did this task") -- no
 // email or permissions exposed, available to any authenticated user.
 export const getUsersBasic = asyncHandler(async (req, res) => {
-  const users = await User.find({ isActive: true }).select('name').sort({ name: 1 });
+  const users = await User.find({ isActive: true }).select('name').sort({ name: 1 }).lean();
   res.json({ users: users.map((u) => ({ id: u._id, name: u.name })) });
 });
 

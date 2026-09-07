@@ -10,7 +10,8 @@ export const getAll = asyncHandler(async (req, res) => {
   const items = await Packing.find()
     .sort({ order: 1, createdAt: 1 })
     .populate('createdBy', USER_FIELDS)
-    .populate('updatedBy', USER_FIELDS);
+    .populate('updatedBy', USER_FIELDS)
+    .lean();
   res.json({ items });
 });
 

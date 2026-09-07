@@ -38,4 +38,7 @@ const deploymentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+deploymentSchema.index({ order: 1, createdAt: 1 });
+deploymentSchema.index({ status: 1 });
+
 export default mongoose.model('Deployment', deploymentSchema);

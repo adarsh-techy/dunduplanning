@@ -1,30 +1,41 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from '../features/auth/LoginPage';
-import DashboardPage from '../features/dashboard/DashboardPage';
-import PlanningPage from '../features/steps/PlanningPage';
-import StepDetailPage from '../features/steps/StepDetailPage';
-import PurchasePage from '../features/purchases/PurchasePage';
-import PurchaseDetailPage from '../features/purchases/PurchaseDetailPage';
-import PurchaseDashboardPage from '../features/purchases/PurchaseDashboardPage';
-import FinancePage from '../features/finance/FinancePage';
-import MarketingPage from '../features/marketing/MarketingPage';
-import MarketingDetailPage from '../features/marketing/MarketingDetailPage';
-import FeaturesPage from '../features/features/FeaturesPage';
-import FeatureDetailPage from '../features/features/FeatureDetailPage';
-import DeliveryPage from '../features/delivery/DeliveryPage';
-import DeliveryDetailPage from '../features/delivery/DeliveryDetailPage';
-import AppProgressPage from '../features/appProgress/AppProgressPage';
-import AppFeatureDetailPage from '../features/appProgress/AppFeatureDetailPage';
-import DeploymentPage from '../features/deployment/DeploymentPage';
-import DeploymentDetailPage from '../features/deployment/DeploymentDetailPage';
-import PackingPage from '../features/packing/PackingPage';
-import PackingDetailPage from '../features/packing/PackingDetailPage';
-import AdminUsersPage from '../features/users/AdminUsersPage';
 import Layout from '../components/Layout';
 import ProtectedRoute from '../components/ProtectedRoute';
+import Spinner from '../components/Spinner';
+
+// Lazy-load page components so users only download what they need on demand
+const LoginPage = lazy(() => import('../features/auth/LoginPage'));
+const DashboardPage = lazy(() => import('../features/dashboard/DashboardPage'));
+const PlanningPage = lazy(() => import('../features/steps/PlanningPage'));
+const StepDetailPage = lazy(() => import('../features/steps/StepDetailPage'));
+const PurchasePage = lazy(() => import('../features/purchases/PurchasePage'));
+const PurchaseDetailPage = lazy(() => import('../features/purchases/PurchaseDetailPage'));
+const PurchaseDashboardPage = lazy(() => import('../features/purchases/PurchaseDashboardPage'));
+const FinancePage = lazy(() => import('../features/finance/FinancePage'));
+const MarketingPage = lazy(() => import('../features/marketing/MarketingPage'));
+const MarketingDetailPage = lazy(() => import('../features/marketing/MarketingDetailPage'));
+const FeaturesPage = lazy(() => import('../features/features/FeaturesPage'));
+const FeatureDetailPage = lazy(() => import('../features/features/FeatureDetailPage'));
+const DeliveryPage = lazy(() => import('../features/delivery/DeliveryPage'));
+const DeliveryDetailPage = lazy(() => import('../features/delivery/DeliveryDetailPage'));
+const AppProgressPage = lazy(() => import('../features/appProgress/AppProgressPage'));
+const AppFeatureDetailPage = lazy(() => import('../features/appProgress/AppFeatureDetailPage'));
+const DeploymentPage = lazy(() => import('../features/deployment/DeploymentPage'));
+const DeploymentDetailPage = lazy(() => import('../features/deployment/DeploymentDetailPage'));
+const PackingPage = lazy(() => import('../features/packing/PackingPage'));
+const PackingDetailPage = lazy(() => import('../features/packing/PackingDetailPage'));
+const AdminUsersPage = lazy(() => import('../features/users/AdminUsersPage'));
+
+const RouteLoader = () => (
+  <div className="flex h-64 items-center justify-center">
+    <Spinner className="h-8 w-8 text-brand-600" />
+  </div>
+);
 
 export default function AppRoutes() {
   return (
+    <Suspense fallback={<RouteLoader />}>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
 
@@ -193,5 +204,6 @@ export default function AppRoutes() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }
